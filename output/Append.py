@@ -339,6 +339,27 @@ class Append:
                 self.modules.append(CoastalQ(list(self.cont.values())[0], \
                     coastalq_dir, self.sos_file, self.logger))
                 
+    def rename_with_timestamps(self):
+        """Rename the results file to include time coverage and creation timestamps."""
+
+        sos = Dataset(self.sos_file, 'r')
+        start = getattr(sos, 'time_coverage_start', None)
+        end = getattr(sos, 'time_coverage_end', None)
+        created = getattr(sos, 'date_created', None)
+        sos.close()
+
+        if start == "NO TIME DATA" or end == "NO TIME DATA":
+            self.logger.warning("Time coverage not available; skipping timestamp rename.")
+            return
+
+        fmt = lambda s: datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S').strftime('%Y%m%dT%H%M%S')
+        continent = self.sos_file.name.split('_')[0]
+        new_name = f"{continent}_{self.results_suffix}_{fmt(start)}_{fmt(end)}_{fmt(created)}.nc"
+        new_path = self.sos_file.parent / new_name
+        self.sos_file.rename(new_path)
+        self.sos_file = new_path
+        self.logger.info(f"Renamed results file to: {new_name}.")
+
     def update_time_coverage(self):
         """Update time coverage for results."""
         

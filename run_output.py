@@ -134,6 +134,7 @@ def main():
         VALIDATION / "stats", CONSENSUS, LAKEFLOW, SSC, COASTALQ)
     append.append_data()
     append.update_time_coverage()
+    append.rename_with_timestamps()
 
     # Upload SoS data
     if args.sosbucket != 'local':
