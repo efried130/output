@@ -30,6 +30,7 @@ import numpy as np
 import xarray as xr
 
 # Local imports
+from output.modules.CoastalQ import CoastalQ
 from output.modules.Consensus import Consensus
 from output.modules.Hivdi import Hivdi
 from output.modules.Metroman import Metroman
@@ -124,7 +125,7 @@ class Append:
         logger: Logger
             logger to use for logging state
         sword_version: str, optional
-            SWORD version number (default: "16")
+            SWORD version number (default: "17")
         """
         
         self.sword_version = sword_version
@@ -231,7 +232,7 @@ class Append:
                 self.logger.error(traceback.format_exc())        
                 
     def create_modules(self, run_type, input_dir, diag_dir, flpe_dir, moi_dir, \
-                       off_dir, val_dir, consensus_dir, lakeflow_dir, ssc_dir):
+                       off_dir, val_dir, consensus_dir, lakeflow_dir, ssc_dir, coastalq_dir):
         
         """Create and stores a list of AbstractModule objects.
         
@@ -334,6 +335,9 @@ class Append:
                         self.sos_nids
                     )
                 )
+            if module == "coastalq":
+                self.modules.append(CoastalQ(list(self.cont.values())[0], \
+                    coastalq_dir, self.sos_file, self.logger))
                 
     def update_time_coverage(self):
         """Update time coverage for results."""
@@ -474,20 +478,23 @@ def write_nodes(prior_sos, result_sos, metadata_json, node_ids):
     
     # Latitude
     x = sos_node.createVariable("x", "f8", ("num_nodes"), compression="zlib")
-    x.setncatts(prior_sos["nodes"]["x"].__dict__)
-    x[:] = prior_sos["nodes"]["x"][:]
+    if "x" in prior_sos["nodes"].variables:
+        x.setncatts(prior_sos["nodes"]["x"].__dict__)
+        x[:] = prior_sos["nodes"]["x"][:]
     set_variable_atts(x, metadata_json["nodes"]["x"])
     
     # Longitude
     y = sos_node.createVariable("y", "f8", ("num_nodes"), compression="zlib")
-    y.setncatts(prior_sos["nodes"]["y"].__dict__)
-    y[:] = prior_sos["nodes"]["y"][:]
+    if "y" in prior_sos["nodes"].variables:
+        y.setncatts(prior_sos["nodes"]["y"].__dict__)
+        y[:] = prior_sos["nodes"]["y"][:]
     set_variable_atts(y, metadata_json["nodes"]["y"])
     
     # River name
     river_name = sos_node.createVariable("river_name", str, ("num_nodes"),)
-    river_name.setncatts(prior_sos["nodes"]["river_name"].__dict__)
-    river_name[:] = prior_sos["nodes"]["river_name"][:]
+    if "river_name" in prior_sos["nodes"].variables:
+        river_name.setncatts(prior_sos["nodes"]["river_name"].__dict__)
+        river_name[:] = prior_sos["nodes"]["river_name"][:]
     set_variable_atts(river_name, metadata_json["nodes"]["river_name"])
 
 def set_variable_atts(variable, variable_dict):
