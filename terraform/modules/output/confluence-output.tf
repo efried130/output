@@ -94,7 +94,7 @@ resource "aws_batch_job_definition" "generate_batch_jd_output" {
     }, {
       name = "output"
       efsVolumeConfiguration = {
-        fileSystemId = var.efs_file_system_ids["validation"]
+        fileSystemId = var.efs_file_system_ids["output"]
         rootDirectory = "/"
       }
     }]
